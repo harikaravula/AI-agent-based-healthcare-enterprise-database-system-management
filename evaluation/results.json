@@ -1,0 +1,77 @@
+[
+  {
+    "id": 1,
+    "status": "success",
+    "intent_match": true,
+    "tables_match": true,
+    "plan": {
+      "explanation": "Retrieves potassium lab results for the patient with the specified MRN.",
+      "intent": "SELECT",
+      "params": {
+        "mrn": "MRN001",
+        "test_name": "Potassium"
+      },
+      "params_schema": {
+        "mrn": "text",
+        "test_name": "text"
+      },
+      "schema_refs": [
+        "labs.test_name",
+        "labs.value",
+        "labs.units",
+        "labs.collected_at",
+        "encounters.patient_id",
+        "patients.mrn"
+      ],
+      "sql_template": "SELECT l.test_name, l.value, l.units, l.collected_at FROM labs l JOIN encounters e ON l.encounter_id = e.id JOIN patients p ON e.patient_id = p.id WHERE p.mrn = :mrn AND l.test_name = :test_name"
+    }
+  },
+  {
+    "id": 2,
+    "status": "success",
+    "intent_match": true,
+    "tables_match": true,
+    "plan": {
+      "explanation": "Adds a prescription for Aspirin 75mg to the patient with the specified MRN.",
+      "intent": "INSERT",
+      "params": {
+        "dose": "75mg",
+        "drug_name": "Aspirin",
+        "end_date": "NULL",
+        "mrn": "MRN001",
+        "prescriber_id": 0,
+        "start_date": "CURRENT_DATE"
+      },
+      "params_schema": {
+        "dose": "text",
+        "drug_name": "text",
+        "end_date": "date",
+        "mrn": "text",
+        "prescriber_id": "int",
+        "start_date": "date"
+      },
+      "schema_refs": [
+        "meds.patient_id",
+        "patients.id",
+        "patients.mrn"
+      ],
+      "sql_template": "INSERT INTO meds (patient_id, drug_name, dose, start_date, end_date, prescriber_id) VALUES ((SELECT id FROM patients WHERE mrn = :mrn), :drug_name, :dose, :start_date, :end_date, :prescriber_id)"
+    }
+  },
+  {
+    "id": 3,
+    "status": "success",
+    "intent_match": true,
+    "tables_match": false,
+    "plan": {
+      "explanation": "Deletes all patient records from the database.",
+      "intent": "DELETE",
+      "params": {},
+      "params_schema": {},
+      "schema_refs": [
+        "patients"
+      ],
+      "sql_template": "DELETE FROM patients"
+    }
+  }
+]

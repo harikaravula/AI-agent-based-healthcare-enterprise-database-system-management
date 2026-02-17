@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Data Ingestion | Healthcare Agent</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-hover: #764ba2;
+            --bg: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --surface: rgba(255, 255, 255, 0.95);
+            --border: rgba(255, 255, 255, 0.3);
+            --text: #1a202c;
+            --text-muted: #6b7280;
+            --success: #43e97b;
+            --warning: #fbbf24;
+            --error: #f5576c;
+        }
+
+        @keyframes progress-indeterminate {
+            0% {
+                background-position: 1rem 0;
+            }
+
+            100% {
+                background-position: 0 0;
+            }
+        }
+
+        .progress-indeterminate {
+            background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
+            background-size: 1rem 1rem;
+            animation: progress-indeterminate 1s linear infinite;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            background: #f1f5f9;
+        }
+
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+
+        .step {
+            position: relative;
+            z-index: 1;
+            background: var(--surface);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .step.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .step.completed {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        textarea {
+            height: 150px;
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        .file-drop-area {
+            border: 2px dashed var(--border);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .file-drop-area:hover {
+            border-color: var(--primary);
+        }
+
+        .file-drop-area.dragover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        /* Results Display */
+        pre {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid #6ee7b7;
+            box-shadow: 0 4px 15px rgba(110, 231, 183, 0.3);
+        }
+
+        .error-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid #fca5a5;
+            box-shadow: 0 4px 15px rgba(252, 165, 165, 0.3);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .file-list {
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Automated Database Ingestion</h1>
+            <a href="/" class="btn btn-outline">Back to Dashboard</a>
+        </header>
+
+        <div class="step-indicator">
+            <div class="step active" id="step-1-ind">1. Upload</div>
+            <div class="step" id="step-2-ind">2. Analyze</div>
+            <div class="step" id="step-3-ind">3. Generate Schema</div>
+            <div class="step" id="step-4-ind">4. Create DB</div>
+        </div>
+
+        <!-- Step 1: Upload -->
+        <div id="step-1" class="card">
+            <h2>1. Upload Data & Requirements</h2>
+            <div class="form-group">
+                <label>Upload Data Files (CSV, JSON, XLSX, TXT)</label>
+                <div class="file-drop-area" id="drop-area">
+                    <p>Drag & drop files here or click to select</p>
+                    <input type="file" id="fileElem" multiple style="display:none">
+                </div>
+                <div id="file-list" class="file-list"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Requirements Specification (Markdown)</label>
+                <textarea id="requirements" placeholder="# Database Requirements..."></textarea>
+                <div style="margin-top: 0.5rem; font-size: 0.875rem;">
+                    <a href="#" onclick="loadTemplate(); return false;">Load Template</a>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="uploadFiles()">Start Ingestion</button>
+        </div>
+
+        <!-- Step 2: Analysis -->
+        <div id="step-2" class="card hidden">
+            <h2>2. Data Analysis</h2>
+            <div id="analysis-loading" class="hidden">
+                <p>Analyzing files... please wait.</p>
+            </div>
+            <div id="analysis-result"></div>
+            <br>
+            <button class="btn btn-primary" onclick="generateSchema()">Generate Schema with AI</button>
+        </div>
+
+        <!-- Step 3: Schema Generation -->
+        <div id="step-3" class="card hidden">
+            <h2>3. Schema Generation (DS-STAR)</h2>
+            <div id="schema-loading" class="hidden">
+                <p>AI is iteratively refining the schema... (this may take 30-60s)</p>
+                <div class="progress-bar"
+                    style="width: 100%; height: 4px; background:#e2e8f0; margin-top:10px; border-radius:2px;">
+                    <div style="width: 0%; height: 100%; background: var(--primary); transition: width 0.5s;"
+                        id="schema-progress"></div>
+                </div>
+            </div>
+            <div id="schema-result"></div>
+            <br>
+            <button class="btn btn-primary" onclick="createDatabase()">Create Database</button>
+        </div>
+
+        <!-- Step 4: Database Creation -->
+        <div id="step-4" class="card hidden">
+            <h2>4. Results</h2>
+            <div id="db-result"></div>
+            <br>
+            <a href="/" class="btn btn-primary">Go to Query Interface</a>
+            <button class="btn btn-outline" onclick="location.reload()">Start New Ingestion</button>
+        </div>
+
+    </div>
+
+    <script>
+        let files = [];
+        let uploadId = null;
+
+        // File Drag & Drop
+        const dropArea = document.getElementById('drop-area');
+        const fileElem = document.getElementById('fileElem');
+
+        ['dragentry', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+        });
+
+        dropArea.addEventListener('drop', handleDrop, false);
+        dropArea.addEventListener('click', () => fileElem.click());
+        fileElem.addEventListener('change', function () { handleFiles(this.files); });
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            handleFiles(dt.files);
+        }
+
+        function handleFiles(fileList) {
+            files = [...files, ...fileList];
+            renderFileList();
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('file-list');
+            list.innerHTML = files.map((f, i) => `
+            <div class="file-item">
+                <span>${f.name} (${(f.size / 1024).toFixed(1)} KB)</span>
+                <span style="cursor:pointer; color:red;" onclick="removeFile(${i})">×</span>
+            </div>
+        `).join('');
+        }
+
+        function removeFile(i) {
+            files.splice(i, 1);
+            renderFileList();
+        }
+
+        function loadTemplate() {
+            document.getElementById('requirements').value = `# Healthcare Database Requirements
+
+## Purpose
+Store patient medical records for a small clinic.
+
+## Data Sources
+- patients.csv: Patient demographics
+- encounters.json: Medical encounter records
+
+## Entities
+1. Patient - MRN (PK), DOB, Gender
+2. Encounter - Links to Patient, Date, Dept
+
+## Constraints
+- De-identify: Remove patient names
+- All dates in ISO format`;
+        }
+
+        async function uploadFiles() {
+            if (files.length === 0) return alert('Please upload at least one file');
+            const reqs = document.getElementById('requirements').value;
+            if (!reqs) return alert('Please enter requirements');
+
+            setLoading(true);
+            const formData = new FormData();
+            files.forEach(f => formData.append('files[]', f));
+            formData.append('requirements', reqs);
+
+            try {
+                const res = await fetch('/upload-data', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.error) throw new Error(data.error);
+
+                uploadId = data.upload_id;
+                nextStep(2);
+                startAnalysis();
+            } catch (e) {
+                alert('Upload failed: ' + e.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function startAnalysis() {
+            document.getElementById('analysis-loading').classList.remove('hidden');
+            try {
+                const res = await fetch(`/process-files/${uploadId}`, { method: 'POST' });
+                const data = await res.json();
+
+                document.getElementById('analysis-result').innerHTML = `
+                <div class="success-box">
+                    <h3>Analysis Complete</h3>
+                    <p>Processed ${data.files_parsed} files.</p>
+                </div>
+                <pre>${data.analysis.natural_language_summary}</pre>
+                <div style="margin-top:1rem">
+                    <strong>Detected Relationships:</strong>
+                    <ul>${data.analysis.relationships.map(r =>
+                    `<li>${r.from_table}.${r.from_column} → ${r.to_table}.${r.to_column}</li>`
+                ).join('') || '<li>None detected</li>'}</ul>
+                </div>
+            `;
+            } catch (e) {
+                document.getElementById('analysis-result').innerHTML = `<div class="error-box">${e.message}</div>`;
+            } finally {
+                document.getElementById('analysis-loading').classList.add('hidden');
+            }
+        }
+
+        async function generateSchema() {
+            nextStep(3);
+            document.getElementById('schema-loading').classList.remove('hidden');
+            const progressBar = document.getElementById('schema-progress');
+
+            // Show indeterminate state
+            progressBar.style.width = '100%';
+            progressBar.style.transition = 'none';
+            progressBar.style.backgroundColor = 'var(--warning)'; // Orange for "Working"
+            progressBar.classList.add('progress-indeterminate');
+            progressBar.innerHTML = '<span style="color:white; font-size:12px; font-weight:bold; padding:5px; text-shadow:0 1px 2px rgba(0,0,0,0.2);">✨ AI Agent is refining schema... (approx. 30s)</span>';
+
+            try {
+                // Request async generation
+                const res = await fetch(`/generate-schema/${uploadId}?async_mode=true`, { method: 'POST' });
+
+                if (res.status === 202) {
+                    await pollForSchema(uploadId);
+                } else {
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error);
+                    renderSchemaResult(data);
+                }
+            } catch (e) {
+                document.getElementById('schema-result').innerHTML = `<div class="error-box">${e.message}</div>`;
+                document.getElementById('schema-loading').classList.add('hidden');
+            }
+        }
+
+        async function pollForSchema(id) {
+            const pollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/ingestion-status/${id}`);
+                    const status = await res.json();
+
+                    // Update progress if available
+                    if (status.schema_progress) {
+                        const p = status.schema_progress;
+                        const pct = Math.max(5, Math.round((p.round / p.max_rounds) * 100));
+                        const progressBar = document.getElementById('schema-progress');
+                        progressBar.style.width = `${pct}%`;
+                        progressBar.innerHTML = `<span style="color:white; font-size:12px; font-weight:bold; padding:5px; text-shadow:0 1px 2px rgba(0,0,0,0.2); white-space:nowrap;">✨ ${p.message}</span>`;
+                    }
+
+                    if (status.stage === 'awaiting_approval' || (status.stage === 'completed' && status.has_schema)) {
+                        clearInterval(pollInterval);
+
+                        // Fetch schema details
+                        const schemaRes = await fetch(`/schema/${id}`);
+                        const schemaData = await schemaRes.json();
+
+                        // Render with data from backend
+                        renderSchemaResult(schemaData);
+                    } else if (status.stage === 'failed') {
+                        clearInterval(pollInterval);
+                        throw new Error(status.errors.join(', '));
+                    }
+                } catch (e) {
+                    clearInterval(pollInterval);
+                    document.getElementById('schema-result').innerHTML = `<div class="error-box">${e.message}</div>`;
+                    document.getElementById('schema-loading').classList.add('hidden');
+                }
+            }, 2000);
+        }
+
+        function renderSchemaResult(data) {
+            document.getElementById('schema-loading').classList.add('hidden');
+            const progressBar = document.getElementById('schema-progress');
+            progressBar.classList.remove('progress-indeterminate');
+            progressBar.style.backgroundColor = 'var(--success)';
+            progressBar.innerHTML = '';
+
+            document.getElementById('schema-result').innerHTML = `
+                <div class="success-box">
+                    <h3>Schema Generated</h3>
+                    <p>Verified in ${data.rounds_taken} rounds.</p>
+                </div>
+                <pre>${data.schema_description}</pre>
+                <details>
+                    <summary>View Code</summary>
+                    <pre>${data.schema_code}</pre>
+                </details>
+            `;
+        }
+
+        async function createDatabase() {
+            nextStep(4);
+            try {
+                const res = await fetch(`/create-database/${uploadId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ approved: true })
+                });
+                const data = await res.json();
+
+                if (data.error) throw new Error(data.error);
+
+                document.getElementById('db-result').innerHTML = `
+                <div class="success-box">
+                    <h3>Database Created Successfully! 🎉</h3>
+                    <p>Path: ${data.database_path}</p>
+                    <p>Tables: ${data.tables_created}</p>
+                </div>
+                <h4>Rows Inserted:</h4>
+                <ul>${Object.entries(data.rows_inserted).map(([k, v]) => `<li>${k}: ${v} rows</li>`).join('')}</ul>
+            `;
+            } catch (e) {
+                document.getElementById('db-result').innerHTML = `<div class="error-box">${e.message}</div>`;
+            }
+        }
+
+        function nextStep(stepNum) {
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`step-${stepNum}`).classList.remove('hidden');
+
+            document.querySelectorAll('.step').forEach((s, i) => {
+                s.classList.remove('active', 'completed');
+                if (i + 1 < stepNum) s.classList.add('completed');
+                if (i + 1 === stepNum) s.classList.add('active');
+            });
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) document.body.classList.add('loading');
+            else document.body.classList.remove('loading');
+        }
+    </script>
+
+</body>
+
+</html>

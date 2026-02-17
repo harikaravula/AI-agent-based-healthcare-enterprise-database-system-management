@@ -1,0 +1,28 @@
+roles:
+  clinician:
+    allow:
+      select: ["patients", "encounters", "labs", "meds"]
+      insert: ["meds"]
+      update: ["meds"]
+  analyst:
+    allow:
+      select: ["*"]
+  admin:
+    allow:
+      select: ["*"]
+      insert: ["*"]
+      update: ["*"]
+pii_fields:
+  patients: ["mrn", "dob", "gender"]
+  users: ["username"]
+high_risk:
+  - op: "DELETE"
+    condition: "rows_affected > 0"
+    require_approval: true
+  - op: "UPDATE"
+    condition: "rows_affected > 50"
+    require_approval: true
+safety_rules:
+  - name: "require_where_for_delete_update"
+    level: "hard"
+    description: "Disallow DELETE/UPDATE without WHERE clause"

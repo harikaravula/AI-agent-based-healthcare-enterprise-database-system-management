@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Multi-Agent System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1a202c;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #e0e7ff;
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .box {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            animation: slideUp 0.6s ease-out backwards;
+        }
+
+        .box:nth-child(2) { animation-delay: 0.1s; }
+        .box:nth-child(3) { animation-delay: 0.2s; }
+        .box:nth-child(4) { animation-delay: 0.3s; }
+        .box:nth-child(5) { animation-delay: 0.4s; }
+
+        .box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-style: italic;
+            margin-bottom: 1rem;
+            margin-top: -0.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.5);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(67, 233, 123, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 233, 123, 0.5);
+        }
+
+        .btn-large {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #1a202c;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
+        }
+
+        .btn-large:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(250, 112, 154, 0.5);
+        }
+
+        pre {
+            background: #f7fafc;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            font-size: 0.9rem;
+        }
+
+        .role-select {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #output {
+            min-height: 100px;
+            color: #4b5563;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #fdcb6e;
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Healthcare Multi-Agent System</h1>
+        <p class="subtitle">AI Agents based Healthcare Enterprise Database System Management</p>
+
+        <div class="box">
+            <h3>User Context</h3>
+            <div class="role-select">
+                <label>Select Your Role:</label>
+                <select id="role">
+                    <option value="clinician">Clinician</option>
+                    <option value="analyst">Analyst</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="box highlight-box">
+            <h3>Automated Database Ingestion</h3>
+            <p class="section-subtitle">(Creates database based on input file)</p>
+            <button class="btn-large" onclick="window.location.href='/ingestion'">
+                🚀 Start Database Ingestion
+            </button>
+        </div>
+
+        <div class="box">
+            <h3>Query / Command</h3>
+            <p class="section-subtitle">(Connects to the created database)</p>
+            <textarea id="query" placeholder="e.g., Show potassium labs for patient MRN001"></textarea>
+            <br>
+            <button class="btn-primary" onclick="runInterpret()">Interpret Only</button>
+            <button class="btn-info" onclick="runValidate()">Validate Plan</button>
+            <button class="btn-secondary" onclick="runAnalytics()">Run Analytics</button>
+            <button class="btn-success" onclick="runExecute()">Execute (Write)</button>
+        </div>
+
+        <div class="box">
+            <h3>Output</h3>
+            <div id="output">Results will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        async function callApi(endpoint, body) {
+            const role = document.getElementById('role').value;
+            const payload = {
+                user: { role: role, id: 1 },
+                ...body
+            };
+
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = "Processing...";
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                renderResponse(data, endpoint, outputDiv);
+
+                return data;
+            } catch (e) {
+                outputDiv.textContent = "Error: " + e;
+            }
+        }
+
+        function renderResponse(data, endpoint, container) {
+            container.innerHTML = ''; // Clear previous
+
+            if (data.error) {
+                container.innerHTML = `<div style="color: red; font-weight: bold;">Error: ${data.error}</div>`;
+                return;
+            }
+
+            switch (endpoint) {
+                case '/interpret':
+                    renderInterpret(data, container);
+                    break;
+                case '/validate':
+                    renderValidate(data, container);
+                    break;
+                case '/analytics':
+                    renderAnalytics(data, container);
+                    break;
+                case '/execute':
+                    renderExecute(data, container);
+                    break;
+                default:
+                    // Fallback
+                    const pre = document.createElement('pre');
+                    pre.textContent = JSON.stringify(data, null, 2);
+                    container.appendChild(pre);
+            }
+        }
+
+        function renderInterpret(data, container) {
+            const html = `
+                <div style="background: linear-gradient(135deg, #e0f2fe 0%, #ddd6fe 100%); padding: 20px; border-radius: 12px; border: 2px solid #a5b4fc;">
+                    <h4 style="margin-top: 0; color: #4c1d95; font-size: 1.2rem;">Interpretation Result</h4>
+                    <p><strong style="color: #5b21b6;">Intent:</strong> ${data.intent || 'N/A'}</p>
+                    <p><strong style="color: #5b21b6;">Explanation:</strong> ${data.explanation || 'N/A'}</p>
+                    <div style="background: #fff; padding: 15px; border: 2px solid #c7d2fe; margin: 15px 0; border-radius: 8px;">
+                        <strong style="color: #4c1d95;">SQL Template:</strong>
+                        <pre style="margin: 10px 0; background: #f5f3ff; border: 1px solid #ddd6fe;">${data.sql_template || 'N/A'}</pre>
+                    </div>
+                    <p><strong style="color: #5b21b6;">Parameters:</strong> ${JSON.stringify(data.params || {})}</p>
+                    <p><strong style="color: #5b21b6;">Schema Refs:</strong> ${(data.schema_refs || []).join(', ')}</p>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function renderValidate(data, container) {
+            const color = data.approved ? 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)' : 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
+            const statusColor = data.approved ? '#065f46' : '#991b1b';
+            const borderColor = data.approved ? '#6ee7b7' : '#fca5a5';
+
+            let messagesHtml = '';
+            if (data.messages && data.messages.length > 0) {
+                messagesHtml = '<ul style="margin-left: 20px;">' + data.messages.map(m => `<li>${m}</li>`).join('') + '</ul>';
+            }
+
+            let fixesHtml = '';
+            if (data.suggested_fixes && data.suggested_fixes.length > 0) {
+                fixesHtml = '<p><strong>Suggested Fixes:</strong></p><ul style="margin-left: 20px;">' + data.suggested_fixes.map(f => `<li>${f}</li>`).join('') + '</ul>';
+            }
+
+            const html = `
+                <div style="background: ${color}; padding: 20px; border-radius: 12px; border: 2px solid ${borderColor};">
+                    <h4 style="margin-top: 0; color: ${statusColor}; font-size: 1.3rem; font-weight: 700;">
+                        ${data.approved ? '✅ APPROVED' : '❌ REJECTED'}
+                    </h4>
+                    <p><strong style="color: ${statusColor};">Risk Level:</strong> ${data.risk_level || 'Unknown'}</p>
+                    ${messagesHtml}
+                    ${fixesHtml}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function renderAnalytics(data, container) {
+            if (data.summary) {
+                const p = document.createElement('p');
+                p.innerHTML = `<strong style="color: #7c3aed;">Summary:</strong> ${data.summary}`;
+                p.style.marginBottom = '15px';
+                container.appendChild(p);
+            }
+
+            if (data.data && Array.isArray(data.data)) {
+                renderTable(data.data, container);
+            } else {
+                container.appendChild(document.createTextNode("No data returned."));
+            }
+
+            if (data.sql_executed) {
+                const p = document.createElement('p');
+                p.style.fontStyle = 'italic';
+                p.style.color = '#6b7280';
+                p.style.marginTop = '15px';
+                p.textContent = "SQL: " + data.sql_executed;
+                container.appendChild(p);
+            }
+        }
+
+        function renderExecute(data, container) {
+            if (data.status === 'blocked') {
+                container.innerHTML = `<h4 style="color: #dc2626; font-size: 1.2rem;">⛔ Execution Blocked</h4>`;
+                renderValidate(data.validation, container);
+                return;
+            }
+
+            const isDryRun = data.status === 'dry_run';
+            const bgColor = isDryRun ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
+            const borderColor = isDryRun ? '#fbbf24' : '#6ee7b7';
+
+            let content = '';
+            if (isDryRun) {
+                content = `
+                    <p><strong style="color: #92400e;">Status:</strong> Dry Run</p>
+                    <p><strong style="color: #92400e;">Message:</strong> ${data.message || ''}</p>
+                    <p><strong style="color: #92400e;">Planned SQL:</strong> <pre style="background: #fffbeb; border: 1px solid #fde68a; padding: 10px; border-radius: 6px;">${data.sql_planned || ''}</pre></p>
+                    <p><strong style="color: #92400e;">Params:</strong> ${JSON.stringify(data.params || {})}</p>
+                `;
+            } else {
+                content = `
+                    <p><strong style="color: #065f46;">Status:</strong> ✅ Success</p>
+                    <p><strong style="color: #065f46;">Rows Affected:</strong> ${data.rows_affected}</p>
+                    <p><strong style="color: #065f46;">Audit ID:</strong> ${data.audit_id}</p>
+                `;
+            }
+
+            const html = `
+                <div style="background: ${bgColor}; padding: 20px; border-radius: 12px; border: 2px solid ${borderColor};">
+                    <h4 style="margin-top: 0; font-size: 1.2rem;">Execution Result</h4>
+                    ${content}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function renderTable(data, container) {
+            if (data.length === 0) {
+                const p = document.createElement('p');
+                p.textContent = "No results found.";
+                container.appendChild(p);
+                return;
+            }
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.marginTop = '15px';
+            table.style.borderRadius = '8px';
+            table.style.overflow = 'hidden';
+            table.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+
+            // Header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const keys = Object.keys(data[0]);
+            keys.forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                th.style.border = '1px solid #e5e7eb';
+                th.style.padding = '12px';
+                th.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                th.style.color = 'white';
+                th.style.textAlign = 'left';
+                th.style.fontWeight = '600';
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Body
+            const tbody = document.createElement('tbody');
+            data.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                tr.style.background = idx % 2 === 0 ? '#f9fafb' : 'white';
+                keys.forEach(key => {
+                    const td = document.createElement('td');
+                    td.textContent = row[key];
+                    td.style.border = '1px solid #e5e7eb';
+                    td.style.padding = '10px';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            container.appendChild(table);
+        }
+
+        async function runInterpret() {
+            const text = document.getElementById('query').value;
+            await callApi('/interpret', { text: text });
+        }
+
+        async function runValidate() {
+            const text = document.getElementById('query').value;
+            // First interpret
+            const plan = await callApi('/interpret', { text: text });
+            if (plan && !plan.error) {
+                // Then validate
+                await callApi('/validate', { plan: plan });
+            }
+        }
+
+        async function runAnalytics() {
+            const text = document.getElementById('query').value;
+            await callApi('/analytics', { text: text, mode: 'autonomous' });
+        }
+
+        async function runExecute() {
+            const text = document.getElementById('query').value;
+            await callApi('/execute', { text: text, dry_run: false, justification: "Demo execution" });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,28 @@
+[
+    {
+        "id": 1,
+        "text": "Show potassium labs for patient MRN001",
+        "expected_intent": "SELECT",
+        "expected_tables": [
+            "labs",
+            "patients",
+            "encounters"
+        ]
+    },
+    {
+        "id": 2,
+        "text": "Add aspirin 75mg for patient MRN001",
+        "expected_intent": "INSERT",
+        "expected_tables": [
+            "meds"
+        ]
+    },
+    {
+        "id": 3,
+        "text": "Delete all patients",
+        "expected_intent": "DELETE",
+        "expected_tables": [
+            "patients"
+        ]
+    }
+]
